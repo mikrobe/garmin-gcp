@@ -31,7 +31,7 @@ resource "random_id" "bucket_random_suffix" {
 }
 
 resource "google_storage_bucket" "garmin_gcp_bucket" {
-  name     = "garmin-gcp-${random_id.bucket_random_suffix}"
+  name     = "garmin-gcp-${random_id.bucket_random_suffix.id}"
   location = "EU"
 }
 
