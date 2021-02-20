@@ -1,2 +1,10 @@
-/venv/
+# Terraform
+**/.terraform/*
+**/*.tfplan
+
+# Python
+**/__pycache__/*
+**/venv/*
+
+# Other
 /.garmin-cookies.txt
