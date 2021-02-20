@@ -3,11 +3,11 @@ terraform {
 
   required_providers {
     google = {
-      source = "hashicorp/google"
+      source  = "hashicorp/google"
       version = "3.57.0"
     }
     random = {
-      source = "hashicorp/random"
+      source  = "hashicorp/random"
       version = "3.1.0"
     }
   }
@@ -23,13 +23,15 @@ terraform {
 
 provider "google" {
   project = "garmin-267619"
-  region = "europe-west1"
+  region  = "europe-west1"
 }
 
-resource "random_id" "bucket_random_suffix" {}
+resource "random_id" "bucket_random_suffix" {
+  byte_length = 8
+}
 
 resource "google_storage_bucket" "garmin_gcp_bucket" {
-  name = "garmin-gcp-${random_id.bucket_random_suffix}"
+  name     = "garmin-gcp-${random_id.bucket_random_suffix}"
   location = "EU"
 }
 
