@@ -1,6 +1,14 @@
 terraform {
   required_version = "~> 0.14"
 
+  backend "remote" {
+    organization = "mkuthan"
+
+    workspaces {
+      name = "garmin-gcp"
+    }
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -11,27 +19,21 @@ terraform {
       version = "3.1.0"
     }
   }
-
-  backend "remote" {
-    organization = "mkuthan"
-
-    workspaces {
-      name = "garmin-gcp"
-    }
-  }
 }
 
 provider "google" {
-  project = "garmin-267619"
-  region  = "europe-west1"
+  project = var.gcp_project
+  region  = var.gcp_region
 }
 
-resource "random_id" "bucket_random_suffix" {
-  byte_length = 8
+resource "random_string" "id" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
 resource "google_storage_bucket" "garmin_gcp_bucket" {
-  name     = "garmin-gcp-${random_id.bucket_random_suffix.id}"
+  name     = "garmin-gcp-${random_string.id.result}"
   location = "EU"
 }
 
