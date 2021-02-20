@@ -3,17 +3,8 @@ import datetime
 import logging
 from google.cloud import bigquery
 
-from functions.import_heart_rate_data.garmin.garminclient import GarminClient
-from functions.import_heart_rate_data.models.heartrate import HeartRate
-
-
-def import_activities(event, context):
-    logging.debug("Received event {} ")
-    timestamp = context.timestamp
-
-    print("""This Function was triggered by messageId {} published at {}""".format(context.event_id, context.timestamp))
-
-    print(event)
+from functions.garmin import GarminClient
+from functions.models.heartrate import HeartRate
 
 
 def main():
