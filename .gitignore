@@ -5,6 +5,7 @@
 # Python
 **/__pycache__/*
 **/venv/*
+**/build/*
 
 # Other
 /.garmin-cookies.txt
