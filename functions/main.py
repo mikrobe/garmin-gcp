@@ -3,8 +3,35 @@ import datetime
 import logging
 from google.cloud import bigquery
 
-from functions.garmin import GarminClient
+from functions.garmin.garminclient import GarminClient
 from functions.models.heartrate import HeartRate
+
+
+def hello_world(event, context):
+    """Background Cloud Function to be triggered by Pub/Sub.
+    Args:
+         event (dict):  The dictionary with data specific to this type of
+         event. The `data` field contains the PubsubMessage message. The
+         `attributes` field will contain custom attributes if there are any.
+         context (google.cloud.functions.Context): The Cloud Functions event
+         metadata. The `event_id` field contains the Pub/Sub message ID. The
+         `timestamp` field contains the publish time.
+    """
+    import base64
+
+    print("""This Function was triggered by messageId {} published at {}
+    """.format(context.event_id, context.timestamp))
+
+    if 'data' in event:
+        name = base64.b64decode(event['data']).decode('utf-8')
+    else:
+        name = 'World'
+    print('Hello {}!'.format(name))
+
+
+def import_daily_heart_rate(event, context):
+    print("""This Function was triggered by messageId {} published at {}
+    """.format(context.event_id, context.timestamp))
 
 
 def main():
@@ -27,12 +54,13 @@ def main():
         heart_rate_data = connection.get_daily_heart_rate(args.username, args.date)
         heart_rate = HeartRate(heart_rate_data)
         heart_rate_values = heart_rate.heart_rate_values()
+        print(heart_rate_values)
 
-        errors = bq_client.insert_rows_json(table_id, heart_rate_values)
-        if errors == []:
-            print("New rows have been added.")
-        else:
-            print("Encountered errors while inserting rows: {}".format(errors))
+        # errors = bq_client.insert_rows_json(table_id, heart_rate_values)
+        # if errors == []:
+        #     print("New rows have been added.")
+        # else:
+        #     print("Encountered errors while inserting rows: {}".format(errors))
 
 
 def _garmin_client(args):

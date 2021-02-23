@@ -21,6 +21,11 @@ terraform {
   }
 }
 
+provider "google" {
+  project = var.gcp_project
+  region  = var.gcp_region
+}
+
 data "terraform_remote_state" "main" {
   backend = "remote"
 
@@ -34,51 +39,21 @@ data "terraform_remote_state" "main" {
 }
 
 locals {
-  hello_world_function    = "${path.root}/../../build/hello_world.zip"
-  hello_world_entry_point = "hello_pubsub"
-  random_string           = data.terraform_remote_state.main.outputs.random_string
-  stage_bucket            = data.terraform_remote_state.main.outputs.stage_bucket
-  scheduler_daily_topic   = data.terraform_remote_state.main.outputs.scheduler_daily_topic
+  stage_bucket          = data.terraform_remote_state.main.outputs.stage_bucket
+  scheduler_daily_topic = data.terraform_remote_state.main.outputs.scheduler_daily_topic
 }
 
+module "hello_world" {
+  source = "../modules/cloud-functions"
 
-data "archive_file" "hello_world" {
-  type        = "zip"
-  output_path = local.hello_world_function
+  gcp_project = var.gcp_project
+  gcp_region  = var.gcp_region
 
-  source {
-    content  = file("${path.root}/../../functions/hello_world.py")
-    filename = "main.py"
-  }
+  entry_point         = "hello_world"
+  event_trigger_topic = local.scheduler_daily_topic
 
-  source {
-    content  = file("${path.module}/../../requirements.txt")
-    filename = "requirements.txt"
-  }
-}
+  source_dir = "${path.root}/../../functions"
+  stage_dir  = "${path.root}/../../build"
 
-resource "google_storage_bucket_object" "hello_world" {
-  name   = "hello_world.zip"
-  bucket = local.stage_bucket
-  source = local.hello_world_function
-}
-
-resource "google_cloudfunctions_function" "hello_world_function" {
-  project = var.gcp_project
-  region  = var.gcp_region
-
-  name        = "hello-world-${local.random_string}"
-  entry_point = local.hello_world_entry_point
-  runtime     = "python39"
-
-  source_archive_bucket = local.stage_bucket
-  source_archive_object = google_storage_bucket_object.hello_world.name
-
-  available_memory_mb = 128
-  timeout             = 60
-
-  event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = local.scheduler_daily_topic
-  }
+  stage_bucket = local.stage_bucket
 }

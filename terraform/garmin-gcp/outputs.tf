@@ -1,7 +1,3 @@
-output "random_string" {
-  value = random_string.id.result
-}
-
 output "stage_bucket" {
   value = google_storage_bucket.stage_bucket.name
 }

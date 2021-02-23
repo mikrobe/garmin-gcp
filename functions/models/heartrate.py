@@ -10,10 +10,14 @@ class HeartRate(object):
 
         heart_rate_values = self.daily_heart_rate_data["heartRateValues"]
 
-        div_zero = lambda x: x / 0
+        def map_value(x):
+            return {
+                "timestamp": int(x[timestamp_index] / 1000),
+                "heart_rate": x[heart_rate_index]
+            }
 
         return list(
-            map(lambda x: {u"timestamp": int(x[timestamp_index] / 1000), u"heart_rate": int(x[heart_rate_index])}, heart_rate_values)
+            map(lambda x: map_value(x), heart_rate_values)
         )
 
     def _get_value_index(self, heart_rate_value_descriptors, key):
