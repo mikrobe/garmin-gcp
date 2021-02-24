@@ -3,8 +3,8 @@ import datetime
 import logging
 from google.cloud import bigquery
 
-from functions.garmin.garminclient import GarminClient
-from functions.models.heartrate import HeartRate
+from garmin.garminclient import GarminClient
+from models.heartrate import HeartRate
 
 
 def hello_world(event, context):
