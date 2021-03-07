@@ -1,0 +1,92 @@
+[
+  {
+    "name": "activity_id",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "nec_lat",
+    "type": "INT64"
+  },
+  {
+    "name": "nec_long",
+    "type": "INT64"
+  },
+  {
+    "name": "swc_lat",
+    "type": "INT64"
+  },
+  {
+    "name": "swc_long",
+    "type": "INT64"
+  },
+  {
+    "name": "avg_cadence",
+    "type": "INT64"
+  },
+  {
+    "name": "avg_heart_rate",
+    "type": "INT64"
+  },
+  {
+    "name": "avg_power",
+    "type": "INT64"
+  },
+  {
+    "name": "avg_speed",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "avg_temperature",
+    "type": "INT64"
+  },
+  {
+    "name": "max_cadence",
+    "type": "INT64"
+  },
+  {
+    "name": "max_heart_rate",
+    "type": "INT64"
+  },
+  {
+    "name": "max_power",
+    "type": "INT64"
+  },
+  {
+    "name": "max_speed",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "max_temperature",
+    "type": "INT64"
+  },
+  {
+    "name": "total_ascent",
+    "type": "INT64"
+  },
+  {
+    "name": "total_calories",
+    "type": "INT64"
+  },
+  {
+    "name": "total_descent",
+    "type": "INT64"
+  },
+  {
+    "name": "total_distance",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "total_elapsed_time",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "total_timer_time",
+    "type": "FLOAT64"
+  }
+]

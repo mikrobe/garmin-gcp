@@ -1,0 +1,44 @@
+[
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "activity_id",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "position_lat",
+    "type": "INT64"
+  },
+  {
+    "name": "position_long",
+    "type": "INT64"
+  },
+  {
+    "name": "altitude",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "cadence",
+    "type": "INT64"
+  },
+  {
+    "name": "heart_rate",
+    "type": "INT64"
+  },
+  {
+    "name": "power",
+    "type": "INT64"
+  },
+  {
+    "name": "speed",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "temperature",
+    "type": "INT64"
+  }
+]

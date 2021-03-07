@@ -10,7 +10,11 @@ variable "entry_point" {
   type = string
 }
 
-variable "event_trigger_topic" {
+variable "event_trigger_type" {
+  type = string
+}
+
+variable "event_trigger_resource" {
   type = string
 }
 

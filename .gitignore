@@ -8,4 +8,4 @@
 **/build/*
 
 # Other
-/.garmin-cookies.txt
+**/.garmin-cookies.txt

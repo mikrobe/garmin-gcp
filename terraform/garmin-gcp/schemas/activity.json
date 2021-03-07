@@ -1,0 +1,116 @@
+[
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "id",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "sport",
+    "type": "STRUCT",
+    "fields": [
+      {
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "name": "sport",
+        "type": "STRING"
+      },
+      {
+        "name": "sub_sport",
+        "type": "STRING"
+      }
+    ]
+  },
+  {
+    "name": "session",
+    "type": "STRUCT",
+    "fields": [
+      {
+        "name": "ne_position_lat",
+        "type": "INT64"
+      },
+      {
+        "name": "ne_position_long",
+        "type": "INT64"
+      },
+      {
+        "name": "sw_position_lat",
+        "type": "INT64"
+      },
+      {
+        "name": "sw_position_long",
+        "type": "INT64"
+      },
+      {
+        "name": "avg_cadence",
+        "type": "INT64"
+      },
+      {
+        "name": "avg_heart_rate",
+        "type": "INT64"
+      },
+      {
+        "name": "avg_power",
+        "type": "INT64"
+      },
+      {
+        "name": "avg_speed",
+        "type": "NUMERIC"
+      },
+      {
+        "name": "avg_temperature",
+        "type": "INT64"
+      },
+      {
+        "name": "max_cadence",
+        "type": "INT64"
+      },
+      {
+        "name": "max_heart_rate",
+        "type": "INT64"
+      },
+      {
+        "name": "max_power",
+        "type": "INT64"
+      },
+      {
+        "name": "max_speed",
+        "type": "INT64"
+      },
+      {
+        "name": "max_temperature",
+        "type": "INT64"
+      },
+      {
+        "name": "total_ascent",
+        "type": "INT64"
+      },
+      {
+        "name": "total_calories",
+        "type": "INT64"
+      },
+      {
+        "name": "total_descent",
+        "type": "INT64"
+      },
+      {
+        "name": "total_distance",
+        "type": "INT64"
+      },
+      {
+        "name": "total_elapsed_time",
+        "type": "INT64"
+      },
+      {
+        "name": "total_timer_time",
+        "type": "INT64"
+      }
+    ]
+  }
+]

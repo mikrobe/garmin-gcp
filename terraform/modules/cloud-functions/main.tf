@@ -55,7 +55,7 @@ resource "google_cloudfunctions_function" "function" {
   timeout             = 60
 
   event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = var.event_trigger_topic
+    event_type = var.event_trigger_type
+    resource   = var.event_trigger_resource
   }
 }

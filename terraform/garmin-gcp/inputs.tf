@@ -13,3 +13,7 @@ variable "app_engine_location" {
 variable "bucket_location" {
   type = string
 }
+
+variable "dataset_location" {
+  type = string
+}

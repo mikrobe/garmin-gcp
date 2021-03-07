@@ -3,7 +3,7 @@ terraform {
     organization = "mkuthan"
 
     workspaces {
-      name = "garmin-gcp-hello-world"
+      name = "garmin-gcp-load-activity"
     }
   }
 
@@ -21,11 +21,6 @@ terraform {
   }
 }
 
-provider "google" {
-  project = var.gcp_project
-  region  = var.gcp_region
-}
-
 data "terraform_remote_state" "main" {
   backend = "remote"
 
@@ -39,9 +34,10 @@ data "terraform_remote_state" "main" {
 }
 
 locals {
-  stage_bucket          = data.terraform_remote_state.main.outputs.stage_bucket
-  scheduler_daily_topic = data.terraform_remote_state.main.outputs.scheduler_daily_topic
+  import_wellness_function = "${path.root}/../../build/import_wellness.zip"
+  stage_bucket             = data.terraform_remote_state.main.outputs.stage_bucket
 }
+
 
 module "hello_world" {
   source = "../modules/cloud-functions"
@@ -49,9 +45,9 @@ module "hello_world" {
   gcp_project = var.gcp_project
   gcp_region  = var.gcp_region
 
-  entry_point            = "hello_world"
-  event_trigger_resource = "google.pubsub.topic.publish"
-  event_trigger_topic    = local.scheduler_daily_topic
+  entry_point         = "hello_world"
+  event_trigger_type = "google.storage.object.finalize"
+  event_trigger_resource = "todo"
 
   source_dir = "${path.root}/../../functions"
   stage_dir  = "${path.root}/../../build"
