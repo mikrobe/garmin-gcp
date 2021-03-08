@@ -1,10 +1,14 @@
 import argparse
 import logging
+import os
 
+from garmin.garminclient import GarminClient
 from models import activity
 
+logging.basicConfig(level=logging.INFO)
 
-def hello_world(event, context):
+
+def function_feed(event, context):
     """Background Cloud Function to be triggered by Pub/Sub.
     Args:
          event (dict):  The dictionary with data specific to this type of
@@ -26,36 +30,40 @@ def hello_world(event, context):
     print('Hello {}!'.format(name))
 
 
-def hello_gcs(event, context):
-    """Background Cloud Function to be triggered by Cloud Storage.
-       This generic function logs relevant data when a file is changed.
-
+def function_export(request):
+    """HTTP Cloud Function.
     Args:
-        event (dict):  The dictionary with data specific to this type of event.
-                       The `data` field contains a description of the event in
-                       the Cloud Storage `object` format described here:
-                       https://cloud.google.com/storage/docs/json_api/v1/objects#resource
-        context (google.cloud.functions.Context): Metadata of triggering event.
+        request (flask.Request): The request object.
+        <https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data>
     Returns:
-        None; the output is written to Stackdriver Logging
+        The response text, or any set of values that can be turned into a
+        Response object using `make_response`
+        <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
     """
+    request_json = request.get_json(silent=True)
+    request_args = request.args
 
-    print('Event ID: {}'.format(context.event_id))
-    print('Event type: {}'.format(context.event_type))
-    print('Bucket: {}'.format(event['bucket']))
-    print('File: {}'.format(event['name']))
-    print('Metageneration: {}'.format(event['metageneration']))
-    print('Created: {}'.format(event['timeCreated']))
-    print('Updated: {}'.format(event['updated']))
+    if request_json and 'name' in request_json:
+        name = request_json['name']
+    elif request_args and 'name' in request_args:
+        name = request_args['name']
+    else:
+        name = 'World'
+    return 'Hello {}!'.format(name)
 
 
-def import_daily_heart_rate(event, context):
-    print("""This Function was triggered by messageId {} published at {}
-    """.format(context.event_id, context.timestamp))
+def function_load(event, context):
+    gcs_bucket = event['bucket']
+    gcs_object = event['name']
+
+    session_table = os.environ['SESSION_TABLE']
+    record_table = os.environ['RECORD_TABLE']
+
+    activity.load(gcs_bucket, gcs_object, session_table, record_table)
 
 
 def command_feed(args):
-    print("feed")
+    activity.feed(args.username, args.password, args.cookie_jar, args.activity_table)
 
 
 def command_export(args):
@@ -63,7 +71,7 @@ def command_export(args):
 
 
 def command_load(args):
-    activity.load(args.file, args.session_table_id, args.record_table_id)
+    activity.load(args.gcs_bucket, args.gcs_object, args.session_table, args.record_table)
 
 
 def main():
@@ -78,16 +86,18 @@ def main():
     subparsers = parser.add_subparsers(title="Commands")
 
     parser_feed = subparsers.add_parser("feed", parents=[garmin_parser], description="Feed activities from Garmin Connect")
+    parser_feed.add_argument("--activity-table", help="BigQuery activity table")
     parser_feed.set_defaults(func=command_feed)
 
     parser_export = subparsers.add_parser("export", parents=[garmin_parser], description="Export activity file from Garmin Connect to GCS")
     parser_export.add_argument("--activity-id", help="Activity identifier")
     parser_export.set_defaults(func=command_export)
 
-    parser_load = subparsers.add_parser("load", description="Load activity into BigQuery")
-    parser_load.add_argument("--file", help="Activity file")
-    parser_load.add_argument("--session-table-id", help="BigQuery session table")
-    parser_load.add_argument("--record-table-id", help="BigQuery record table")
+    parser_load = subparsers.add_parser("load", description="Load activity from GCS into BigQuery")
+    parser_load.add_argument("--gcs-bucket", help="GCS bucket")
+    parser_load.add_argument("--gcs-object", help="GCS object")
+    parser_load.add_argument("--session-table", help="BigQuery session table")
+    parser_load.add_argument("--record-table", help="BigQuery record table")
     parser_load.set_defaults(func=command_load)
 
     args = parser.parse_args()

@@ -10,16 +10,11 @@ terraform {
       source  = "hashicorp/archive"
       version = ">= 2.1.0"
     }
-    random  = {
-      source  = "hashicorp/random"
-      version = ">=3.1.0"
-    }
   }
 }
 
 locals {
-  function_name = "${var.entry_point}-${random_string.id.result}"
-  archive_file  = "${var.stage_dir}/${local.function_name}.zip"
+  archive_file = "${var.stage_dir}/${var.function_name}.zip"
 }
 
 resource "random_string" "id" {
@@ -37,25 +32,27 @@ data "archive_file" "archive" {
 resource "google_storage_bucket_object" "archive_object" {
   source = local.archive_file
   bucket = var.stage_bucket
-  name   = "${local.function_name}.zip"
+  name   = "${var.function_name}-${data.archive_file.archive.output_md5}.zip"
 }
 
 resource "google_cloudfunctions_function" "function" {
   project = var.gcp_project
   region  = var.gcp_region
 
-  name        = local.function_name
+  name        = var.function_name
   entry_point = var.entry_point
-  runtime     = var.runtime
+
+  environment_variables = var.environment_variables
 
   source_archive_bucket = var.stage_bucket
   source_archive_object = google_storage_bucket_object.archive_object.name
 
-  available_memory_mb = 128
-  timeout             = 60
+  runtime             = var.runtime
+  available_memory_mb = var.available_memory_mb
+  timeout             = var.timeout_sec
 
   event_trigger {
-    event_type = var.event_trigger_type
-    resource   = var.event_trigger_resource
+    event_type = var.event_trigger.type
+    resource   = var.event_trigger.resource
   }
 }

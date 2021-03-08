@@ -69,7 +69,7 @@ resource "google_storage_bucket" "stage_bucket" {
   location = var.bucket_location
 }
 
-resource "google_storage_bucket" "activities_bucket" {
+resource "google_storage_bucket" "activity_bucket" {
   name     = "activity-${random_string.id.result}"
   location = var.bucket_location
 }
@@ -77,6 +77,19 @@ resource "google_storage_bucket" "activities_bucket" {
 resource "google_bigquery_dataset" "activity_dataset" {
   dataset_id = "activity"
   location   = var.dataset_location
+}
+
+module "activity_table" {
+  source = "../modules/big-query-table"
+
+  dataset_id = google_bigquery_dataset.activity_dataset.dataset_id
+  table_id   = "activity"
+
+  schema = file("${path.module}/schemas/activity.json")
+
+  clustering = [
+    "owner_id"
+  ]
 }
 
 module "session_table" {

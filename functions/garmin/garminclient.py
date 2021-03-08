@@ -8,11 +8,6 @@ import sys
 import requests
 
 
-# https://github.com/felipeam86/garpy/blob/master/garpy/resources/default_config.yaml
-
-# https://connect.garmin.com/modern/proxy/activitylist-service/activities/search/activities?limit=20&start=0
-# https://connect.garmin.com/modern/proxy/activitylist-service/activities/list/mkuthan?limit=5&startTimestampLocal=2021-02-19T00:00:00.00&endTimestampLocal=2021-02-25T23:59:59.999&start=6&_=1614287322784
-
 class GarminClient(object):
     _SSO_LOGIN_URL = "https://sso.garmin.com/sso/signin"
     _ACTIVITY_LIST_SERVICE_URL = "https://connect.garmin.com/modern/proxy/activitylist-service"
@@ -38,15 +33,18 @@ class GarminClient(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self._disconnect()
 
-    def get_activities(self, batch_size=10):
+    def get_activities(self, batch_size=10, limit=sys.maxsize):
         assert self.session
 
         request = "{}/activities/search/activities".format(GarminClient._ACTIVITY_LIST_SERVICE_URL)
-        for start_index in range(0, sys.maxsize, batch_size):
+        for start_index in range(0, limit, batch_size):
             params = {
                 "start": start_index,
                 "limit": batch_size,
             }
+
+            self._LOG.info("Get activities, start: %d, limit: %d", start_index, batch_size)
+
             response = self.session.get(request, params=params, headers=GarminClient._REQUIRED_HEADERS)
             response.raise_for_status()
 
@@ -59,6 +57,9 @@ class GarminClient(object):
 
     def get_activity(self, activity_id):
         assert self.session
+
+        self._LOG.info("Get activity '%s'", activity_id),
+
         response = self.session.get("{}/files/activity/{}".format(GarminClient._DOWNLOAD_SERVICE_URL, activity_id))
         response.raise_for_status()
 

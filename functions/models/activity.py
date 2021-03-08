@@ -1,12 +1,17 @@
+import dataclasses
 import os
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 
-from fitdecode import FitReader, FitDataMessage
+import pytz
+from fitdecode import FitDataMessage
+from fitdecode import FitReader
 
+from garmin.garminclient import GarminClient
 from gcp.bigqueryclient import BigQueryClient
+from gcp.gcsclient import GcsClient
 from models.fitdata import FitData
-from utils.dataclass import map_as_dict
 
 
 @dataclass
@@ -49,38 +54,64 @@ class Record(FitData):
     temperature: int = None
 
 
-@dataclass(frozen=True)
-class Activity(object):
-    sessions: [Session]
-    records: [Record]
-
-    @staticmethod
-    def parse(activity_id, file):
-        sessions = []
-        records = []
-
-        with FitReader(file) as fit:
-            for frame in fit:
-                if isinstance(frame, FitDataMessage):
-                    if frame.name == 'session':
-                        session = Session(activity_id=activity_id)
-                        session.parse(frame)
-                        sessions.append(session)
-                    if frame.name == 'record':
-                        record = Record(activity_id=activity_id)
-                        record.parse(frame)
-                        records.append(record)
-
-        return Activity(
-            sessions,
-            records
-        )
-
-
-def load(file, session_table_id, record_table_id):
-    activity_id = os.path.basename(file)
-    activity = Activity.parse(activity_id, file)
-
+def feed(garmin_username, garmin_password, cookie_jar, activity_table):
     bq_client = BigQueryClient()
-    bq_client.insert_rows(session_table_id, map_as_dict(activity.sessions))
-    bq_client.insert_rows(record_table_id, map_as_dict(activity.records))
+
+    with GarminClient(garmin_username, garmin_password, cookie_jar) as garmin_client:
+        activities_json = garmin_client.get_activities(limit=10)
+        activities = map(lambda activity_json: _parse_json(activity_json), activities_json)
+        bq_client.insert_rows(activity_table, activities)
+
+
+def load(gcs_bucket, gcs_object, session_table, record_table):
+    gcs_client = GcsClient()
+    bq_client = BigQueryClient()
+
+    activity_id = os.path.splitext(os.path.basename(gcs_object))[0]
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        local_file = os.path.join(temp_dir, gcs_object)
+        gcs_client.download(gcs_bucket, gcs_object, local_file)
+
+        records = _parse_fit_records(local_file, activity_id)
+        bq_client.insert_rows(record_table, records)
+
+        sessions = _parse_fit_sessions(local_file, activity_id)
+        bq_client.insert_rows(session_table, sessions)
+
+
+def _parse_fit_frame(file, frame_name):
+    with FitReader(file) as fit:
+        for frame in fit:
+            if isinstance(frame, FitDataMessage):
+                if frame.name == frame_name:
+                    yield frame
+
+
+def _parse_fit_records(file, activity_id):
+    for frame in _parse_fit_frame(file, 'record'):
+        record = Record(activity_id=activity_id)
+        record.parse(frame)
+        yield dataclasses.asdict(record)
+
+
+def _parse_fit_sessions(file, activity_id):
+    for frame in _parse_fit_frame(file, 'session'):
+        session = Session(activity_id=activity_id)
+        session.parse(frame)
+        yield dataclasses.asdict(session)
+
+
+def _parse_json(json):
+    timestamp = datetime.strptime(json['startTimeGMT'], '%Y-%m-%d %H:%M:%S')
+    timestamp_utc = timestamp.replace(tzinfo=pytz.UTC)
+
+    return {
+        "timestamp": timestamp_utc,
+        "id": json['activityId'],
+        "name": json['activityName'],
+        "description": json['description'],
+        "type": json['activityType']['typeKey'],
+        "owner_id": json['ownerId'],
+        "owner_name": json['ownerDisplayName']
+    }
