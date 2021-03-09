@@ -1,6 +1,8 @@
 import dataclasses
+import itertools
 import os
 import tempfile
+import zipfile
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -10,6 +12,7 @@ from fitdecode import FitReader
 
 from garmin.garminclient import GarminClient
 from gcp.bigqueryclient import BigQueryClient
+from gcp.firestoreclient import FirestoreClient
 from gcp.gcsclient import GcsClient
 from models.fitdata import FitData
 
@@ -56,11 +59,28 @@ class Record(FitData):
 
 def feed(garmin_username, garmin_password, cookie_jar, activity_table):
     bq_client = BigQueryClient()
+    fs_client = FirestoreClient()
 
     with GarminClient(garmin_username, garmin_password, cookie_jar) as garmin_client:
         activities_json = garmin_client.get_activities(limit=10)
-        activities = map(lambda activity_json: _parse_json(activity_json), activities_json)
+        activities = map(lambda x: _parse_json(x), activities_json)
+        new_activities = itertools.takewhile(lambda x: not fs_client.is_exits("activity", x["id"]), activities)
         bq_client.insert_rows(activity_table, activities)
+
+
+def export(garmin_username, garmin_password, cookie_jar, activity_id, activity_bucket):
+    gcs_client = GcsClient()
+    zip_filename = "{}.zip".format(activity_id)
+    fit_filename = "{}.fit".format(activity_id)
+
+    with GarminClient(garmin_username, garmin_password, cookie_jar) as garmin_client:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            local_file = os.path.join(temp_dir, zip_filename)
+            garmin_client.download_activity(activity_id, local_file)
+            archive = zipfile.ZipFile(local_file)
+            original_fit_filename = next(x for x in archive.namelist() if x.lower().endswith(".fit"))
+            archive.extract(original_fit_filename, path=temp_dir)
+            gcs_client.upload(activity_bucket, fit_filename, os.path.join(temp_dir, original_fit_filename))
 
 
 def load(gcs_bucket, gcs_object, session_table, record_table):
@@ -111,7 +131,5 @@ def _parse_json(json):
         "id": json['activityId'],
         "name": json['activityName'],
         "description": json['description'],
-        "type": json['activityType']['typeKey'],
-        "owner_id": json['ownerId'],
-        "owner_name": json['ownerDisplayName']
+        "type": json['activityType']['typeKey']
     }

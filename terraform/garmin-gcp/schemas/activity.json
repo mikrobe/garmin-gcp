@@ -20,14 +20,5 @@
   {
     "name": "type",
     "type": "STRING"
-  },
-  {
-    "name": "owner_id",
-    "type": "STRING",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "owner_name",
-    "type": "STRING"
   }
 ]

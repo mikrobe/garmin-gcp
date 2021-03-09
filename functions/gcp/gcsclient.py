@@ -15,3 +15,8 @@ class GcsClient(object):
         blob = bucket.get_blob(name)
         blob.download_to_filename(destination_file)
 
+    def upload(self, bucket, name, source_file):
+        self._LOG.info("Upload %s into %s/%s ", source_file, bucket, name)
+        bucket = self.client.get_bucket(bucket)
+        blob = bucket.blob(name)
+        blob.upload_from_filename(source_file)

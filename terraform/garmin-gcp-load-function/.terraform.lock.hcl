@@ -3,7 +3,7 @@
 
 provider "registry.terraform.io/hashicorp/archive" {
   version     = "2.1.0"
-  constraints = "2.1.0"
+  constraints = ">= 2.1.0, 2.1.0"
   hashes = [
     "h1:Rjd4bHMA69V+16tiriAUTW8vvqoljzNLmEaRBCgzpUs=",
     "zh:033279ecbf60f565303222e9a6d26b50fdebe43aa1c6e8f565f09bb64d67c3fd",
@@ -22,7 +22,7 @@ provider "registry.terraform.io/hashicorp/archive" {
 
 provider "registry.terraform.io/hashicorp/google" {
   version     = "3.57.0"
-  constraints = "3.57.0"
+  constraints = ">= 3.57.0, 3.57.0"
   hashes = [
     "h1:tCgyj2y/EgHDFC24uYpSNKgpBl1hXc9gmjhDXQWVyms=",
     "zh:1c0ec65d86110643666fa88e39a06fd7f03ee959f2b528ab257e64b9333eca8e",

@@ -55,15 +55,17 @@ class GarminClient(object):
             for response_json in response_jsons:
                 yield response_json
 
-    def get_activity(self, activity_id):
+    def download_activity(self, activity_id, file, chunk_size=1024):
         assert self.session
 
         self._LOG.info("Get activity '%s'", activity_id),
 
-        response = self.session.get("{}/files/activity/{}".format(GarminClient._DOWNLOAD_SERVICE_URL, activity_id))
+        response = self.session.get("{}/files/activity/{}".format(GarminClient._DOWNLOAD_SERVICE_URL, activity_id), stream=True)
         response.raise_for_status()
 
-        return response
+        with open(file, 'wb') as fd:
+            for chunk in response.iter_content(chunk_size=chunk_size):
+                fd.write(chunk)
 
     def _connect(self):
         self.session = requests.Session()

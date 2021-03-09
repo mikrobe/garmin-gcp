@@ -67,7 +67,7 @@ def command_feed(args):
 
 
 def command_export(args):
-    print("export")
+    activity.export(args.username, args.password, args.cookie_jar, args.activity_id, args.gcs_bucket)
 
 
 def command_load(args):
@@ -91,6 +91,7 @@ def main():
 
     parser_export = subparsers.add_parser("export", parents=[garmin_parser], description="Export activity file from Garmin Connect to GCS")
     parser_export.add_argument("--activity-id", help="Activity identifier")
+    parser_export.add_argument("--gcs-bucket", help="GCS bucket")
     parser_export.set_defaults(func=command_export)
 
     parser_load = subparsers.add_parser("load", description="Load activity from GCS into BigQuery")

@@ -86,10 +86,6 @@ module "activity_table" {
   table_id   = "activity"
 
   schema = file("${path.module}/schemas/activity.json")
-
-  clustering = [
-    "owner_id"
-  ]
 }
 
 module "session_table" {
