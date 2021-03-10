@@ -57,15 +57,18 @@ class Record(FitData):
     temperature: int = None
 
 
-def feed(garmin_username, garmin_password, cookie_jar, activity_table):
+def feed(garmin_username, garmin_password, cookie_jar, export_tasks_queue, activity_table):
     bq_client = BigQueryClient()
-    fs_client = FirestoreClient()
+    fs_client = FirestoreClient(id_function=FirestoreClient.reverse_id, collection="activity")
 
     with GarminClient(garmin_username, garmin_password, cookie_jar) as garmin_client:
-        activities_json = garmin_client.get_activities(limit=10)
+        activities_json = garmin_client.get_activities(limit=100)
         activities = map(lambda x: _parse_json(x), activities_json)
-        new_activities = itertools.takewhile(lambda x: not fs_client.is_exits("activity", x["id"]), activities)
-        bq_client.insert_rows(activity_table, activities)
+        new_activities = itertools.takewhile(lambda x: not fs_client.is_exits(x["id"]), activities)
+        new_activities_to_bq, new_activities_to_fs = itertools.tee(new_activities)
+
+        fs_client.put(new_activities_to_fs, "id")
+        bq_client.insert_rows(activity_table, new_activities_to_bq)
 
 
 def export(garmin_username, garmin_password, cookie_jar, activity_id, activity_bucket):
@@ -128,8 +131,8 @@ def _parse_json(json):
 
     return {
         "timestamp": timestamp_utc,
-        "id": json['activityId'],
-        "name": json['activityName'],
-        "description": json['description'],
-        "type": json['activityType']['typeKey']
+        "id": str(json['activityId']),
+        "name": str(json['activityName']),
+        "description": str(json['description']),
+        "type": str(json['activityType']['typeKey'])
     }

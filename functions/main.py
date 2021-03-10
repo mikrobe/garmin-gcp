@@ -2,7 +2,6 @@ import argparse
 import logging
 import os
 
-from garmin.garminclient import GarminClient
 from models import activity
 
 logging.basicConfig(level=logging.INFO)
@@ -63,7 +62,7 @@ def function_load(event, context):
 
 
 def command_feed(args):
-    activity.feed(args.username, args.password, args.cookie_jar, args.activity_table)
+    activity.feed(args.username, args.password, args.cookie_jar, args.export_tasks_queue, args.activity_table)
 
 
 def command_export(args):
@@ -87,6 +86,7 @@ def main():
 
     parser_feed = subparsers.add_parser("feed", parents=[garmin_parser], description="Feed activities from Garmin Connect")
     parser_feed.add_argument("--activity-table", help="BigQuery activity table")
+    parser_feed.add_argument("--export-tasks-queue", help="Export tasks queue")
     parser_feed.set_defaults(func=command_feed)
 
     parser_export = subparsers.add_parser("export", parents=[garmin_parser], description="Export activity file from Garmin Connect to GCS")

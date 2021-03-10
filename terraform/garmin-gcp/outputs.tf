@@ -29,3 +29,7 @@ output "scheduler_daily_topic_id" {
 output "scheduler_hourly_topic_id" {
   value = google_pubsub_topic.scheduler_hourly_topic.id
 }
+
+output "export_tasks_queue_id" {
+  value = google_cloud_tasks_queue.export_tasks_queue.id
+}

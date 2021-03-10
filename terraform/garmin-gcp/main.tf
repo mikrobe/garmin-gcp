@@ -114,4 +114,23 @@ module "record_table" {
   ]
 }
 
+resource "google_cloud_tasks_queue" "export_tasks_queue" {
+  name     = "export-tasks-queue"
+  location = var.gcp_region
+
+  rate_limits {
+    max_concurrent_dispatches = 1
+    max_dispatches_per_second = 2
+  }
+
+  retry_config {
+    max_attempts       = 3
+    max_retry_duration = "60s"
+    max_backoff        = "30s"
+    min_backoff        = "5s"
+    max_doublings      = 2
+  }
+}
+
+
 
